@@ -73,10 +73,10 @@ Issues = "https://github.com/swipswaps/chrome-troubleshooter/issues"
 Documentation = "https://github.com/swipswaps/chrome-troubleshooter#readme"
 
 [project.scripts]
-chrome-troubleshooter = "chrome_troubleshooter.cli:main"
-ct = "chrome_troubleshooter.cli:main"
+chrome-troubleshooter = "chrome_troubleshooter.cli_simple:main"
+ct = "chrome_troubleshooter.cli_simple:main"
+chrome-troubleshooter-legacy = "chrome_troubleshooter.cli:main"
 chrome-troubleshooter-typer = "chrome_troubleshooter.cli_typer:cli_main"
-ct-typer = "chrome_troubleshooter.cli_typer:cli_main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

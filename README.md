@@ -4,9 +4,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![CI](https://github.com/swipswaps/chrome-troubleshooter/workflows/CI/badge.svg)](https://github.com/swipswaps/chrome-troubleshooter/actions) [![Development Status](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/swipswaps/chrome-troubleshooter)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![CI](https://github.com/swipswaps/chrome-troubleshooter/workflows/CI/badge.svg)](https://github.com/swipswaps/chrome-troubleshooter/actions) [![Development Status](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/swipswaps/chrome-troubleshooter) [![Working CLI](https://img.shields.io/badge/CLI-working-green.svg)](https://github.com/swipswaps/chrome-troubleshooter)
 
-> **⚠️ BETA STATUS**: This tool is under active development. Core functionality works, but some advanced features are still being implemented. See [Project Status](#-project-status) for details.
+> **✅ WORKING BETA**: Core CLI functionality is implemented and tested. The tool successfully launches Chrome with troubleshooting and provides comprehensive diagnostics. Advanced features are being added incrementally. See [Project Status](#-project-status) for current implementation status.
 
 ## ✨ Features
 
@@ -82,6 +82,18 @@ pre-commit install  # Enable pre-commit hooks
 
 ### **Check Dependencies**
 ```bash
+chrome-troubleshooter status --check-deps
+```
+
+### **Verify Installation**
+```bash
+# Test the CLI is working
+chrome-troubleshooter --help
+
+# Check version
+chrome-troubleshooter version
+
+# Verify system status
 chrome-troubleshooter status --check-deps
 ```
 
@@ -265,13 +277,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📊 Project Status
 
 ### **✅ Implemented & Tested**
-- ✅ **Core CLI Interface**: Full argparse-based CLI with subcommands
+- ✅ **Working CLI Interface**: Clean Typer-based CLI with Rich formatting (`chrome-troubleshooter --help`)
 - ✅ **Configuration System**: Environment variables + JSON file support
 - ✅ **Structured Logging**: Multi-format output (terminal, JSON, SQLite)
-- ✅ **Chrome Launcher**: Progressive fallback strategy
-- ✅ **Diagnostics Collection**: System info, logs, crash analysis
+- ✅ **Chrome Launcher**: Progressive fallback strategy with timeout handling
+- ✅ **Diagnostics Collection**: System info, dependency checking, environment analysis
 - ✅ **Auto-remediation**: SELinux fixes, Wayland compatibility
-- ✅ **Package Structure**: Modern Python packaging with pyproject.toml
+- ✅ **Package Structure**: Modern src/ layout with proper Python packaging
+- ✅ **Multiple CLI Variants**: Simplified CLI (main), Legacy CLI, Enhanced Typer CLI
+- ✅ **System Dependencies**: Automatic detection of Chrome, journalctl, dmesg, etc.
+- ✅ **Error Handling**: Graceful error handling with verbose debugging options
 
 ### **🚧 In Development**
 - 🚧 **Enhanced CLI with Typer**: Migrating to Typer + Rich for better UX

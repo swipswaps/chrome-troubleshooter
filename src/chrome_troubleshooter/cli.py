@@ -4,6 +4,7 @@
 Professional CLI for Chrome crash diagnosis and auto-remediation
 """
 
+import argparse
 import sys
 import os
 from datetime import datetime
@@ -527,8 +528,50 @@ def handle_clean(args, config: Config) -> int:
     return 0
 
 
+def create_parser():
+    """Create the main argument parser"""
+    parser = argparse.ArgumentParser(
+        prog="chrome-troubleshooter",
+        description="🔧 Advanced Chrome crash diagnosis and auto-remediation tool",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    # Global options
+    parser.add_argument(
+        "--config-file",
+        type=Path,
+        help="Path to configuration file"
+    )
+    parser.add_argument(
+        "-v", "--verbose",
+        action="count",
+        default=0,
+        help="Increase verbosity (-v, -vv)"
+    )
+
+    # Subcommands
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Launch command
+    launch_parser = subparsers.add_parser("launch", help="Launch Chrome with troubleshooting")
+    launch_parser.add_argument("--timeout", type=int, help="Launch timeout in seconds")
+    launch_parser.add_argument("--max-attempts", type=int, help="Maximum launch attempts")
+
+    # Status command
+    status_parser = subparsers.add_parser("status", help="Show system status")
+    status_parser.add_argument("--check-deps", action="store_true", help="Check dependencies")
+
+    # Diagnose command
+    diag_parser = subparsers.add_parser("diagnose", help="Run diagnostics")
+    diag_parser.add_argument("--output", type=Path, help="Save diagnostics to file")
+
+    return parser
+
+
 def main() -> int:
     """Main CLI entry point"""
+    import argparse
+
     parser = create_parser()
     args = parser.parse_args()
 
