@@ -1,0 +1,89 @@
+# Ruff configuration for Chrome Troubleshooter
+# https://docs.astral.sh/ruff/configuration/
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+# Assume Python 3.8+
+target-version = "py38"
+
+[lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+select = [
+    "E4",   # Import errors
+    "E7",   # Statement errors  
+    "E9",   # Runtime errors
+    "F",    # Pyflakes
+    "W",    # pycodestyle warnings
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "C4",   # flake8-comprehensions
+    "T20",  # flake8-print
+    "SIM",  # flake8-simplify
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "RUF",  # Ruff-specific rules
+]
+
+ignore = [
+    "E501",   # Line too long (handled by Black)
+    "T201",   # print() statements (we use them intentionally)
+    "A003",   # Class attribute shadows builtin
+    "ARG002", # Unused method argument (common in interfaces)
+    "SIM108", # Use ternary operator (sometimes less readable)
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+[lint.isort]
+known-first-party = ["chrome_troubleshooter"]
+
+[lint.per-file-ignores]
+"tests/*" = ["ARG", "S101"]  # Allow unused args and assert in tests

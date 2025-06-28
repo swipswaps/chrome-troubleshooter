@@ -25,7 +25,7 @@ keywords = [
     "diagnostics"
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: End Users/Desktop",
     "Intended Audience :: System Administrators",
@@ -44,15 +44,23 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
     "colorama>=0.4.4",
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "psutil>=5.9.0",
+    "aiofiles>=23.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "black>=22.0.0",
     "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
     "pytest-mock>=3.6.0",
     "ruff>=0.1.0",
-    "mypy>=1.0.0"
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
 ]
 all = [
     "chrome-troubleshooter[dev]"
@@ -67,9 +75,11 @@ Documentation = "https://github.com/swipswaps/chrome-troubleshooter#readme"
 [project.scripts]
 chrome-troubleshooter = "chrome_troubleshooter.cli:main"
 ct = "chrome_troubleshooter.cli:main"
+chrome-troubleshooter-typer = "chrome_troubleshooter.cli_typer:cli_main"
+ct-typer = "chrome_troubleshooter.cli_typer:cli_main"
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["chrome_troubleshooter*"]
 
 [tool.black]

@@ -4,44 +4,140 @@
 Professional CLI for Chrome crash diagnosis and auto-remediation
 """
 
-import argparse
 import sys
 import os
-import signal
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+import typer
+from rich.console import Console
+from rich.table import Table
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.panel import Panel
+from rich import print as rprint
 
 from .config import Config, load_config, save_config
 from .logger import StructuredLogger
 from .launcher import ChromeLauncher
 from .diagnostics import DiagnosticsCollector
 
+# Initialize Rich console
+console = Console()
+app = typer.Typer(
+    name="chrome-troubleshooter",
+    help="🔧 Advanced Chrome crash diagnosis and auto-remediation tool",
+    add_completion=False,
+    rich_markup_mode="rich"
+)
 
-def create_parser() -> argparse.ArgumentParser:
-    """Create the main argument parser"""
-    parser = argparse.ArgumentParser(
-        prog="chrome-troubleshooter",
-        description="🔧 Advanced Chrome crash diagnosis and auto-remediation tool",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-    # Launch Chrome with troubleshooting
-    chrome-troubleshooter launch
-    
-    # Run diagnostics only
-    chrome-troubleshooter diagnose
-    
-    # Show system status
-    chrome-troubleshooter status
-    
-    # Configure settings
-    chrome-troubleshooter config --timeout 15 --max-attempts 5
-    
-    # View logs from last session
-    chrome-troubleshooter logs --latest
-        """,
-    )
+
+@app.command()
+def launch(
+    timeout: Optional[int] = typer.Option(None, "--timeout", help="Launch timeout in seconds"),
+    max_attempts: Optional[int] = typer.Option(None, "--max-attempts", help="Maximum launch attempts"),
+    extra_flags: Optional[list[str]] = typer.Option(None, "--extra-flags", help="Additional Chrome flags"),
+    no_selinux_fix: bool = typer.Option(False, "--no-selinux-fix", help="Disable automatic SELinux fixes"),
+    no_flatpak_fallback: bool = typer.Option(False, "--no-flatpak-fallback", help="Disable Flatpak fallback"),
+    config_file: Optional[Path] = typer.Option(None, "--config-file", help="Path to configuration file"),
+    verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Increase verbosity")
+):
+    """Launch Chrome with troubleshooting and progressive fallbacks."""
+    return handle_launch_typer(timeout, max_attempts, extra_flags, no_selinux_fix, no_flatpak_fallback, config_file, verbose)
+
+
+@app.command()
+def diagnose(
+    journal_lines: Optional[int] = typer.Option(None, "--journal-lines", help="Number of journal lines to collect"),
+    output: Optional[Path] = typer.Option(None, "--output", help="Save diagnostics to file"),
+    config_file: Optional[Path] = typer.Option(None, "--config-file", help="Path to configuration file"),
+    verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Increase verbosity")
+):
+    """Run comprehensive diagnostics without launching Chrome."""
+    return handle_diagnose_typer(journal_lines, output, config_file, verbose)
+
+
+@app.command()
+def status(
+    check_deps: bool = typer.Option(False, "--check-deps", help="Check system dependencies"),
+    config_file: Optional[Path] = typer.Option(None, "--config-file", help="Path to configuration file"),
+    verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Increase verbosity")
+):
+    """Show system status and configuration."""
+    return handle_status_typer(check_deps, config_file, verbose)
+
+
+def handle_launch_typer(timeout, max_attempts, extra_flags, no_selinux_fix, no_flatpak_fallback, config_file, verbose) -> int:
+    """Handle launch command with enhanced Rich output."""
+    try:
+        # Load configuration
+        config = load_config(config_file)
+
+        # Override with command line arguments
+        if timeout is not None:
+            config.launch_timeout = timeout
+        if max_attempts is not None:
+            config.max_attempts = max_attempts
+        if extra_flags:
+            config.extra_flags.extend(extra_flags)
+        if no_selinux_fix:
+            config.enable_selinux_fix = False
+        if no_flatpak_fallback:
+            config.enable_flatpak_fallback = False
+
+        # Set verbosity
+        if verbose >= 2:
+            config.log_level = "DEBUG"
+        elif verbose >= 1:
+            config.log_level = "INFO"
+
+        # Create session directory
+        session_dir = create_session_directory(config)
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Initializing Chrome troubleshooter...", total=None)
+
+            # Initialize logger
+            with StructuredLogger(session_dir, config) as logger:
+                progress.update(task, description="Starting Chrome launcher...")
+
+                # Initialize launcher
+                launcher = ChromeLauncher(config, logger)
+
+                progress.update(task, description="Launching Chrome with troubleshooting...")
+
+                # Launch Chrome
+                success = launcher.launch()
+
+                if success:
+                    progress.update(task, description="✅ Chrome launched successfully!")
+                    console.print(Panel.fit(
+                        "[green]✅ Chrome launched successfully![/green]\n"
+                        f"Session logs: {session_dir}",
+                        title="Success",
+                        border_style="green"
+                    ))
+                    return 0
+                else:
+                    progress.update(task, description="❌ Chrome launch failed")
+                    console.print(Panel.fit(
+                        "[red]❌ Chrome launch failed after all attempts[/red]\n"
+                        f"Check logs: {session_dir}",
+                        title="Failure",
+                        border_style="red"
+                    ))
+                    return 1
+
+    except KeyboardInterrupt:
+        console.print("\n[yellow]⚠️ Operation cancelled by user[/yellow]")
+        return 130
+    except Exception as e:
+        console.print(f"[red]❌ Error: {e}[/red]")
+        return 1
 
     parser.add_argument("--version", action="version", version="%(prog)s 1.0.0")
 

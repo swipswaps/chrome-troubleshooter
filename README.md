@@ -4,7 +4,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![CI](https://github.com/swipswaps/chrome-troubleshooter/workflows/CI/badge.svg)](https://github.com/swipswaps/chrome-troubleshooter/actions) [![Development Status](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/swipswaps/chrome-troubleshooter)
+
+> **⚠️ BETA STATUS**: This tool is under active development. Core functionality works, but some advanced features are still being implemented. See [Project Status](#-project-status) for details.
 
 ## ✨ Features
 
@@ -38,7 +40,16 @@
 
 ## 🚀 Installation
 
-### **From Source (Recommended)**
+### **Quick Install from GitHub (Recommended)**
+```bash
+# Install directly from GitHub
+pipx install 'chrome-troubleshooter @ git+https://github.com/swipswaps/chrome-troubleshooter.git'
+
+# Or with pip
+pip install 'chrome-troubleshooter @ git+https://github.com/swipswaps/chrome-troubleshooter.git'
+```
+
+### **From Source (Development)**
 ```bash
 git clone https://github.com/swipswaps/chrome-troubleshooter.git
 cd chrome-troubleshooter
@@ -50,6 +61,7 @@ pip install -e .
 git clone https://github.com/swipswaps/chrome-troubleshooter.git
 cd chrome-troubleshooter
 pip install -e .[dev]
+pre-commit install  # Enable pre-commit hooks
 ```
 
 ## 📋 System Requirements
@@ -250,8 +262,32 @@ cat logs.jsonl | jq -r '[.ts, .source, .content] | @csv'
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 📊 Project Status
+
+### **✅ Implemented & Tested**
+- ✅ **Core CLI Interface**: Full argparse-based CLI with subcommands
+- ✅ **Configuration System**: Environment variables + JSON file support
+- ✅ **Structured Logging**: Multi-format output (terminal, JSON, SQLite)
+- ✅ **Chrome Launcher**: Progressive fallback strategy
+- ✅ **Diagnostics Collection**: System info, logs, crash analysis
+- ✅ **Auto-remediation**: SELinux fixes, Wayland compatibility
+- ✅ **Package Structure**: Modern Python packaging with pyproject.toml
+
+### **🚧 In Development**
+- 🚧 **Enhanced CLI with Typer**: Migrating to Typer + Rich for better UX
+- 🚧 **Async Operations**: Non-blocking Chrome launches and log collection
+- 🚧 **Advanced Analytics**: Prometheus metrics and D3.js visualizations
+- 🚧 **RPM/Flatpak Packaging**: Distribution-specific packages
+
+### **📋 Planned Features**
+- 📋 **User Telemetry**: Opt-in usage analytics (GDPR compliant)
+- 📋 **Web Dashboard**: Browser-based log analysis interface
+- 📋 **Plugin System**: Extensible diagnostic modules
+- 📋 **Machine Learning**: Pattern recognition for crash prediction
+
 ## 🙏 Acknowledgments
 
 - Based on comprehensive Chrome troubleshooting research
 - Inspired by community solutions for Fedora Chrome issues
 - Built with modern Python packaging best practices
+- Enhanced with ChatGPT audit suggestions for production readiness
