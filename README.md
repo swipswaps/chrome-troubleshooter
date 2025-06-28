@@ -64,6 +64,23 @@ pip install -e .[dev]
 pre-commit install  # Enable pre-commit hooks
 ```
 
+### **Running Tests**
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run with coverage
+pytest tests/ -v --cov=chrome_troubleshooter --cov-report=term-missing
+
+# Run specific test file
+pytest tests/test_cli_simple.py -v
+
+# Test CLI functionality
+chrome-troubleshooter --help
+chrome-troubleshooter version
+chrome-troubleshooter status --check-deps
+```
+
 ## 📋 System Requirements
 
 ### **Required Dependencies**

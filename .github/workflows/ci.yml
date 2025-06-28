@@ -45,7 +45,13 @@ jobs:
     
     - name: Test with pytest
       run: |
-        pytest tests/ -v --cov=chrome_troubleshooter --cov-report=xml
+        pytest tests/ -v --cov=chrome_troubleshooter --cov-report=xml --cov-report=term-missing
+
+    - name: Test CLI functionality
+      run: |
+        chrome-troubleshooter --help
+        chrome-troubleshooter version
+        chrome-troubleshooter status --check-deps
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
