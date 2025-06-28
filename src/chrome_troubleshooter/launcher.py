@@ -27,25 +27,8 @@ class ChromeLauncher:
         self.logger = logger
         self.diagnostics = DiagnosticsCollector(logger)
 
-        # Launch stages with progressive fallbacks
-        self.launch_stages = [
-            {"name": "vanilla", "description": "Standard launch", "flags": []},
-            {
-                "name": "no_gpu",
-                "description": "Disable GPU acceleration",
-                "flags": ["--disable-gpu"],
-            },
-            {
-                "name": "no_vaapi",
-                "description": "Disable VA-API video decoding",
-                "flags": ["--disable-features=VaapiVideoDecoder"],
-            },
-            {
-                "name": "safe_mode",
-                "description": "Safe mode (no sandbox, incognito)",
-                "flags": ["--incognito", "--no-sandbox"],
-            },
-        ]
+        # Launch stages with progressive fallbacks (enhanced)
+        self.launch_stages = self._build_launch_stages()
 
         # Lock file for single instance (enhanced with fcntl)
         self.lock_file = Path("/tmp/.chrome_troubleshooter.lock")
@@ -55,6 +38,84 @@ class ChromeLauncher:
         # Process tracking
         self.chrome_process = None
         self.current_stage = None
+
+    def _build_launch_stages(self) -> List[Dict[str, Any]]:
+        """Build launch stages based on system environment"""
+        stages = [
+            {"name": "vanilla", "description": "Standard launch", "flags": []},
+        ]
+
+        # Get system info for intelligent fallbacks
+        system_info = self.diagnostics.get_system_info()
+
+        # GPU-specific fallbacks
+        gpu_vendor = system_info.get("gpu_vendor", "unknown")
+        if gpu_vendor == "nvidia":
+            stages.append({
+                "name": "no_nvidia_vaapi",
+                "description": "Disable NVIDIA VA-API",
+                "flags": ["--disable-features=VaapiVideoDecoder,VaapiVideoEncoder"]
+            })
+        elif gpu_vendor == "amd":
+            stages.append({
+                "name": "no_amd_vaapi",
+                "description": "Disable AMD VA-API",
+                "flags": ["--disable-features=VaapiVideoDecoder", "--disable-gpu-sandbox"]
+            })
+
+        # Standard GPU fallback
+        stages.append({
+            "name": "no_gpu",
+            "description": "Disable GPU acceleration",
+            "flags": ["--disable-gpu", "--disable-gpu-sandbox"]
+        })
+
+        # Wayland-specific fallbacks
+        if system_info.get("session_type") == "wayland":
+            stages.append({
+                "name": "wayland_fallback",
+                "description": "Wayland compatibility mode",
+                "flags": ["--disable-gpu", "--enable-features=UseOzonePlatform", "--ozone-platform=wayland"]
+            })
+
+        # SELinux-specific fallbacks
+        selinux_status = system_info.get("selinux_status", "unknown")
+        if selinux_status == "enforcing":
+            stages.append({
+                "name": "selinux_compat",
+                "description": "SELinux compatibility mode",
+                "flags": ["--disable-gpu", "--no-sandbox", "--disable-seccomp-filter-sandbox"]
+            })
+
+        # Container-specific fallbacks
+        container_type = system_info.get("container_type", "none")
+        if container_type != "none":
+            stages.append({
+                "name": "container_mode",
+                "description": f"Container mode ({container_type})",
+                "flags": ["--disable-gpu", "--no-sandbox", "--disable-dev-shm-usage", "--disable-setuid-sandbox"]
+            })
+
+        # Flatpak-specific fallbacks
+        if system_info.get("running_in_flatpak", False):
+            stages.append({
+                "name": "flatpak_mode",
+                "description": "Flatpak sandbox mode",
+                "flags": ["--disable-gpu", "--no-sandbox", "--disable-seccomp-filter-sandbox"]
+            })
+
+        # Final safe mode fallback
+        stages.append({
+            "name": "safe_mode",
+            "description": "Maximum compatibility mode",
+            "flags": [
+                "--disable-gpu", "--no-sandbox", "--disable-seccomp-filter-sandbox",
+                "--disable-dev-shm-usage", "--disable-setuid-sandbox",
+                "--disable-extensions", "--incognito"
+            ]
+        })
+
+        return stages
 
     def acquire_lock(self) -> bool:
         """Acquire single-instance lock with enhanced error handling"""

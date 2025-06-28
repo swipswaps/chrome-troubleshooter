@@ -69,14 +69,25 @@ class DiagnosticsCollector:
             info["kernel"] = self._run_command(["uname", "-r"], capture=True)
             info["architecture"] = self._run_command(["uname", "-m"], capture=True)
 
-            # glibc version
-            try:
-                glibc_output = self._run_command(
-                    ["rpm", "-q", "--qf", "%{VERSION}", "glibc"], capture=True
-                )
-                info["glibc_version"] = glibc_output.strip()
-            except:
-                info["glibc_version"] = "unknown"
+            # glibc version (multiple methods for different distros)
+            info["glibc_version"] = self._detect_glibc_version()
+
+            # SELinux status
+            info["selinux_status"] = self._detect_selinux_status()
+
+            # Flatpak detection
+            info["flatpak_available"] = shutil.which("flatpak") is not None
+            info["running_in_flatpak"] = self._detect_flatpak_sandbox()
+
+            # Container detection
+            info["container_type"] = self._detect_container_type()
+
+            # GPU vendor detection
+            info["gpu_vendor"] = self._detect_gpu_vendor()
+
+            # Chrome path and version
+            chrome_info = self._detect_chrome_info()
+            info.update(chrome_info)
 
             # Memory info
             if Path("/proc/meminfo").exists():
@@ -99,6 +110,108 @@ class DiagnosticsCollector:
             self.logger.error("diagnostics", f"Error collecting system info: {e}")
 
         self._system_info = info
+        return info
+
+    def _detect_glibc_version(self) -> str:
+        """Detect glibc version using multiple methods"""
+        # Try ldd --version first (most reliable)
+        try:
+            output = self._run_command(["ldd", "--version"], capture=True)
+            lines = output.split('\n')
+            if lines:
+                # First line usually contains version info
+                return lines[0].strip()
+        except:
+            pass
+
+        # Try rpm query (Red Hat family)
+        try:
+            output = self._run_command(
+                ["rpm", "-q", "--qf", "%{VERSION}", "glibc"], capture=True
+            )
+            return output.strip()
+        except:
+            pass
+
+        # Try dpkg query (Debian family)
+        try:
+            output = self._run_command(
+                ["dpkg-query", "-W", "-f", "${Version}", "libc6"], capture=True
+            )
+            return output.strip()
+        except:
+            pass
+
+        return "unknown"
+
+    def _detect_selinux_status(self) -> str:
+        """Detect SELinux status"""
+        try:
+            output = self._run_command(["getenforce"], capture=True)
+            return output.strip().lower()
+        except:
+            return "unknown"
+
+    def _detect_flatpak_sandbox(self) -> bool:
+        """Detect if running inside Flatpak sandbox"""
+        return Path("/.flatpak-info").exists() or os.environ.get("FLATPAK_ID") is not None
+
+    def _detect_container_type(self) -> str:
+        """Detect container type (Docker, Podman, etc.)"""
+        # Check for Docker
+        if Path("/.dockerenv").exists():
+            return "docker"
+
+        # Check for Podman
+        if os.environ.get("container") == "podman":
+            return "podman"
+
+        # Check systemd-detect-virt
+        try:
+            output = self._run_command(["systemd-detect-virt"], capture=True)
+            virt_type = output.strip()
+            if virt_type != "none":
+                return virt_type
+        except:
+            pass
+
+        return "none"
+
+    def _detect_gpu_vendor(self) -> str:
+        """Detect GPU vendor"""
+        try:
+            output = self._run_command(["lspci"], capture=True)
+            output_lower = output.lower()
+
+            if "nvidia" in output_lower:
+                return "nvidia"
+            elif "amd" in output_lower or "radeon" in output_lower:
+                return "amd"
+            elif "intel" in output_lower:
+                return "intel"
+        except:
+            pass
+
+        return "unknown"
+
+    def _detect_chrome_info(self) -> Dict[str, str]:
+        """Detect Chrome installation info"""
+        from .utils import which_chrome
+
+        info = {}
+        chrome_path = which_chrome()
+
+        if chrome_path:
+            info["chrome_path"] = chrome_path
+            try:
+                output = self._run_command([chrome_path, "--version"], capture=True)
+                info["chrome_version"] = output.strip()
+            except:
+                info["chrome_version"] = "unknown"
+        else:
+            info["chrome_path"] = "not_found"
+            info["chrome_version"] = "not_found"
+
         return info
 
     def get_gpu_info(self) -> Dict[str, Any]:

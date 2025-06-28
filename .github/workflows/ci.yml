@@ -10,8 +10,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, ubuntu-20.04]
+        include:
+          # Test with performance dependencies
+          - python-version: "3.11"
+            os: ubuntu-latest
+            extras: "performance"
+          # Test with all dependencies
+          - python-version: "3.12"
+            os: ubuntu-latest
+            extras: "all"
 
     steps:
     - uses: actions/checkout@v4
@@ -29,7 +40,11 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e .[dev]
+        if [ "${{ matrix.extras }}" != "" ]; then
+          pip install -e .[${{ matrix.extras }},dev]
+        else
+          pip install -e .[dev]
+        fi
     
     - name: Lint with ruff
       run: |
@@ -52,6 +67,34 @@ jobs:
         chrome-troubleshooter --help
         chrome-troubleshooter version
         chrome-troubleshooter status --check-deps
+
+    - name: Test enhanced features
+      run: |
+        pytest tests/test_enhanced_features.py -v
+
+    - name: Performance benchmarks
+      if: matrix.extras == 'performance' || matrix.extras == 'all'
+      run: |
+        # Test that orjson is available in performance builds
+        python -c "import orjson; print('orjson performance optimization available')"
+
+        # Run basic performance tests
+        python -c "
+        from chrome_troubleshooter.utils import json_dumps, json_loads
+        import time
+
+        # Test data
+        data = {'test': 'performance', 'items': list(range(1000))}
+
+        # Benchmark serialization
+        start = time.perf_counter()
+        for _ in range(100):
+            json_dumps(data)
+        end = time.perf_counter()
+
+        print(f'JSON serialization: {(end-start)*1000:.2f}ms for 100 operations')
+        print('Performance test completed successfully')
+        "
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
