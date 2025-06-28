@@ -62,8 +62,12 @@ dev = [
     "build>=0.10.0",
     "twine>=4.0.0",
 ]
+performance = [
+    "orjson>=3.8.0",  # 5-10x faster JSON processing
+]
 all = [
-    "chrome-troubleshooter[dev]"
+    "chrome-troubleshooter[dev]",
+    "chrome-troubleshooter[performance]"
 ]
 
 [project.urls]

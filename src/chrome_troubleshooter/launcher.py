@@ -47,8 +47,9 @@ class ChromeLauncher:
             },
         ]
 
-        # Lock file for single instance
+        # Lock file for single instance (enhanced with fcntl)
         self.lock_file = Path("/tmp/.chrome_troubleshooter.lock")
+        self._lock_fd = None
         self.lock_fd = None
 
         # Process tracking
@@ -56,21 +57,45 @@ class ChromeLauncher:
         self.current_stage = None
 
     def acquire_lock(self) -> bool:
-        """Acquire single-instance lock"""
+        """Acquire single-instance lock with enhanced error handling"""
         try:
+            # Create lock file if it doesn't exist
+            self.lock_file.touch(exist_ok=True)
+
+            # Open with proper flags for cross-platform compatibility
             self.lock_fd = os.open(
                 str(self.lock_file), os.O_CREAT | os.O_WRONLY | os.O_TRUNC
             )
+
+            # Try to acquire exclusive lock (non-blocking)
             fcntl.flock(self.lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
-            # Write PID to lock file
-            os.write(self.lock_fd, str(os.getpid()).encode())
+            # Write PID and timestamp to lock file for debugging
+            lock_info = f"{os.getpid()}:{int(time.time())}\n"
+            os.write(self.lock_fd, lock_info.encode())
+            os.fsync(self.lock_fd)  # Ensure data is written
 
-            self.logger.debug("launcher", "Acquired single-instance lock")
+            self.logger.debug("launcher", f"Acquired single-instance lock (PID: {os.getpid()})")
             return True
 
-        except (OSError, IOError):
-            self.logger.error("launcher", "Another instance is already running")
+        except BlockingIOError:
+            # Another instance is running
+            self.logger.error("launcher", "Another Chrome troubleshooter instance is already running")
+            if self.lock_fd is not None:
+                try:
+                    os.close(self.lock_fd)
+                except OSError:
+                    pass
+                self.lock_fd = None
+            return False
+        except (OSError, IOError) as e:
+            self.logger.error("launcher", f"Failed to acquire lock: {e}")
+            if self.lock_fd is not None:
+                try:
+                    os.close(self.lock_fd)
+                except OSError:
+                    pass
+                self.lock_fd = None
             return False
 
     def release_lock(self) -> None:

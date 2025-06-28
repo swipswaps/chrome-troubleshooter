@@ -64,6 +64,15 @@ pip install -e .[dev]
 pre-commit install  # Enable pre-commit hooks
 ```
 
+### **Performance Installation (Optional)**
+```bash
+# Install with performance optimizations (5-10x faster JSON processing)
+pip install -e .[performance]
+
+# Or install everything
+pip install -e .[all]
+```
+
 ### **Running Tests**
 ```bash
 # Run all tests
