@@ -15,7 +15,7 @@ import typer
 from chrome_troubleshooter.config import Config
 from chrome_troubleshooter.constants import get_cache_dir
 from chrome_troubleshooter.diagnostics import collect_all
-from chrome_troubleshooter.launcher import ChromeLauncher
+from chrome_troubleshooter.launcher import safe_launch
 from chrome_troubleshooter.logger import StructuredLogger
 
 # Create Typer app with exact specification from audit
@@ -29,10 +29,10 @@ def launch(
     """Start Chrome with safe flags and create a forensic session."""
     config = Config()
     logger = StructuredLogger(config.session_dir)
-    launcher = ChromeLauncher(config, logger)
+    # Use safe_launch function directly
 
     try:
-        launcher.launch_chrome(timeout=timeout)
+        safe_launch(timeout=timeout)
         typer.echo(f"Session created: {config.session_dir}")
     except Exception as e:
         typer.echo(f"Launch failed: {e}", err=True)

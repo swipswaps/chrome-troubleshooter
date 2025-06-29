@@ -1,4 +1,5 @@
 """
+from __future__ import annotations
 Stage-0 safe launcher (no GPU flags yet) with
 single-instance lock (fcntl), timeout, and rich feedback.
 
@@ -14,7 +15,7 @@ Key design decisions from the audit:
 6. Proper cleanup of lock file descriptor
 """
 
-from __future__ import annotations
+from pathlib import Path
 
 import atexit
 import fcntl
@@ -30,6 +31,7 @@ from .constants import SESSION_FMT, get_cache_dir
 from .logger import StructuredLogger as LogWriter
 from .utils import which_chrome
 
+_LOCK = Path("/tmp/chrome-troubleshooter.lock")
 # Lock file location in /tmp for system-wide single instance
 # Using /tmp ensures it's cleaned up on reboot
 # CRITICAL FIX: Global lock FD to prevent garbage collection
