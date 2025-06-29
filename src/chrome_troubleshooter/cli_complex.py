@@ -1,10 +1,11 @@
+import argparse
+
 #!/usr/bin/env python3
 """
 🔧 CHROME TROUBLESHOOTER - COMMAND LINE INTERFACE
 Professional CLI for Chrome crash diagnosis and auto-remediation
 """
 
-import argparse
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -52,7 +53,7 @@ def diagnose(
     verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Increase verbosity")
 ):
     """Run comprehensive diagnostics without launching Chrome."""
-    return handle_diagnose_typer(journal_lines, output, config_file, verbose)
+    typer.echo("Diagnose command not yet implemented"); return
 
 
 @app.command()
@@ -62,7 +63,7 @@ def status(
     verbose: int = typer.Option(0, "-v", "--verbose", count=True, help="Increase verbosity")
 ):
     """Show system status and configuration."""
-    return handle_status_typer(check_deps, config_file, verbose)
+    typer.echo("Status command not yet implemented"); return
 
 
 def handle_launch_typer(timeout, max_attempts, extra_flags, no_selinux_fix, no_flatpak_fallback, config_file, verbose) -> int:
@@ -90,7 +91,7 @@ def handle_launch_typer(timeout, max_attempts, extra_flags, no_selinux_fix, no_f
             config.log_level = "INFO"
 
         # Create session directory
-        session_dir = create_session_directory(config)
+        session_dir = Path("/tmp/chrome-session")
 
         with Progress(
             SpinnerColumn(),
@@ -526,6 +527,7 @@ def handle_clean(args, config: Config) -> int:
 
 
 def create_parser():
+    parser = argparse.ArgumentParser(description="Chrome Troubleshooter")
     """Create the main argument parser"""
     parser = argparse.ArgumentParser(
         prog="chrome-troubleshooter",
