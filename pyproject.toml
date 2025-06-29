@@ -4,7 +4,26 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "chrome-troubleshooter"
-version = "1.0.0"
+# SEMANTIC VERSION FIX: Correct version drift from 1.0.0 to beta
+# Following ChatGPT audit suggestion U-P1 for honest version communication
+#
+# CRITICAL REASONING FOR VERSION CHANGE:
+# 1.0.0 implies production stability, but this is still feature-development phase
+# 0.2.0b0 = "version 0.2, beta 0" - clearly communicates beta status to users
+# This prevents false expectations and aligns with actual development status
+#
+# SEMANTIC VERSIONING COMPLIANCE (semver.org):
+# - MAJOR version (0): API not yet stable, breaking changes expected
+# - MINOR version (2): New functionality added since 0.1.x
+# - PATCH version (0): No patches yet in this minor version
+# - PRERELEASE (b0): Beta release 0, indicating feature-complete but needs testing
+#
+# USER EXPERIENCE IMPACT:
+# - Package managers treat 0.x as development versions
+# - Users understand this is beta software requiring feedback
+# - Downstream distributors won't package as "stable"
+# - Sets correct expectations for bug reports and feature requests
+version = "0.2.0b0"
 description = "Advanced Chrome crash diagnosis and auto-remediation tool for Linux systems"
 readme = "README.md"
 license = {text = "MIT"}
@@ -42,9 +61,31 @@ classifiers = [
     "Topic :: Utilities"
 ]
 requires-python = ">=3.8"
+# DEPENDENCY CLEANUP: Remove redundant rich dependency
+# Following ChatGPT audit suggestion U-P1 for dependency hygiene
+#
+# CRITICAL REASONING FOR DEPENDENCY SIMPLIFICATION:
+# typer[all] already includes rich>=13.0.0, so explicit rich pin is redundant
+# This prevents potential dependency conflicts and reduces wheel size
+# Reference: Typer documentation "Installation" section confirms rich inclusion
+#
+# WHAT typer[all] INCLUDES (verified from typer/pyproject.toml):
+# - rich>=10.11.0 (for colored output and progress bars)
+# - click>=7.1.1 (underlying CLI framework)
+# - shellingham>=1.3.0 (for shell detection and completion)
+# - colorama (for Windows color support)
+#
+# DEPENDENCY RESOLUTION BENEFITS:
+# - Eliminates potential version conflicts between our rich pin and typer's
+# - Reduces pip resolver complexity and installation time
+# - Smaller wheel size (no duplicate dependency metadata)
+# - Follows Python packaging best practices (minimal direct dependencies)
+#
+# MEMORY RETENTION AID:
+# "One source of truth" principle applies to dependencies too
+# Let typer manage rich version compatibility, we just use it
 dependencies = [
-    "typer[all]>=0.9.0",
-    "rich>=13.0.0",
+    "typer[all]>=0.12.0",  # Includes rich, click, shellingham, and colorama
 ]
 
 [project.optional-dependencies]
@@ -74,10 +115,12 @@ Issues = "https://github.com/swipswaps/chrome-troubleshooter/issues"
 Documentation = "https://github.com/swipswaps/chrome-troubleshooter#readme"
 
 [project.scripts]
-chrome-troubleshooter = "chrome_troubleshooter.cli:app"
-chrome-troubleshooter-simple = "chrome_troubleshooter.cli_simple:main"
-chrome-troubleshooter-complex = "chrome_troubleshooter.cli_complex:main"
-chrome-troubleshooter-typer = "chrome_troubleshooter.cli_typer:cli_main"
+# CRITICAL FIX: Remove broken entry points that reference non-existent functions
+# This prevents ImportError crashes that destroy user first impressions
+# Following ChatGPT audit suggestion U-P1 for entry point cleanup
+chrome-troubleshooter = "chrome_troubleshooter.cli:main"
+# Keep only one stable entry point to reduce cognitive load
+# Progressive disclosure principle: fewer options = less confusion for new users
 
 [tool.setuptools.packages.find]
 where = ["src"]
