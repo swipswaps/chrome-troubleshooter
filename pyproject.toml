@@ -43,11 +43,8 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "colorama>=0.4.4",
-    "typer>=0.9.0",
+    "typer[all]>=0.9.0",
     "rich>=13.0.0",
-    "psutil>=5.9.0",
-    "aiofiles>=23.0.0",
 ]
 
 [project.optional-dependencies]
@@ -77,9 +74,9 @@ Issues = "https://github.com/swipswaps/chrome-troubleshooter/issues"
 Documentation = "https://github.com/swipswaps/chrome-troubleshooter#readme"
 
 [project.scripts]
-chrome-troubleshooter = "chrome_troubleshooter.cli_simple:main"
-ct = "chrome_troubleshooter.cli_simple:main"
-chrome-troubleshooter-legacy = "chrome_troubleshooter.cli:main"
+chrome-troubleshooter = "chrome_troubleshooter.cli:app"
+chrome-troubleshooter-simple = "chrome_troubleshooter.cli_simple:main"
+chrome-troubleshooter-complex = "chrome_troubleshooter.cli_complex:main"
 chrome-troubleshooter-typer = "chrome_troubleshooter.cli_typer:cli_main"
 
 [tool.setuptools.packages.find]

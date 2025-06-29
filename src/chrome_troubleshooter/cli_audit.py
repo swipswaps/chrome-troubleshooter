@@ -5,13 +5,6 @@ Colour output uses Rich; exposed via console-script 'chrome-troubleshooter'.
 This module implements the exact specification from the ChatGPT audit
 for a clean, minimal CLI interface using Typer.
 
-CRITICAL IMPLEMENTATION NOTES:
-- This replaces the complex existing CLI with the audit-specified minimal version
-- The complex CLI is preserved as cli_complex.py for backward compatibility
-- Entry point MUST be chrome_troubleshooter.cli:app as specified in audit
-- All imports MUST use the audit-specified modules (constants_audit, etc.)
-- Function signatures MUST match the audit specification exactly
-
 Key design decisions from the audit:
 1. Typer for type-hint-driven CLI with autocompletion
 2. Three core commands: launch, diag, version
@@ -19,14 +12,6 @@ Key design decisions from the audit:
 4. Session-based diagnostic collection
 5. Clean error handling and user feedback
 6. Minimal dependencies (Typer includes Rich)
-
-AUDIT COMPLIANCE VERIFICATION:
-✓ Uses exact imports specified in audit
-✓ Three commands only: launch, diag, version
-✓ Exact function signatures from audit
-✓ Session-based diagnostic collection
-✓ Rich integration for colored output
-✓ Minimal dependencies approach
 """
 
 from __future__ import annotations
@@ -42,7 +27,7 @@ from .logger_audit import LogWriter
 
 # Create Typer application with audit-specified configuration
 # add_completion=False: Disable shell completion for simplicity
-# help: Brief description matching the audit specification EXACTLY
+# help: Brief description matching the audit specification
 app = typer.Typer(add_completion=False, help="Chrome Troubleshooter – beta")
 
 
@@ -68,12 +53,6 @@ def launch(
 
     The command creates a timestamped session directory in the cache
     and logs all activity for later analysis.
-
-    AUDIT COMPLIANCE:
-    ✓ Exact function signature from audit specification
-    ✓ Calls safe_launch from launcher_audit module
-    ✓ Timeout parameter with correct default and help text
-    ✓ Comprehensive docstring explaining functionality
     """
     safe_launch(timeout)
 
@@ -97,13 +76,6 @@ def diag() -> None:
 
     If no session exists, the command displays a helpful warning
     and exits cleanly.
-
-    AUDIT COMPLIANCE:
-    ✓ Exact function signature from audit (no parameters)
-    ✓ Uses CACHE_DIR from constants_audit module
-    ✓ Calls collect_all from diagnostics_audit module
-    ✓ Proper error handling for missing sessions
-    ✓ User-friendly feedback with colored output
     """
     # Find the most recent session directory
     # glob returns all matching directories, max() finds the newest
@@ -142,12 +114,6 @@ def version() -> None:
     The version is read from the package metadata, ensuring it
     matches the actual installed version rather than a hardcoded
     value that could become stale.
-
-    AUDIT COMPLIANCE:
-    ✓ Exact function signature from audit (no parameters)
-    ✓ Uses importlib.metadata for version detection
-    ✓ Proper error handling for missing metadata
-    ✓ Clean output format as specified
     """
     try:
         # Get version from installed package metadata
@@ -164,7 +130,6 @@ def version() -> None:
 
 
 # Entry point for console script
-# This allows the module to be run directly: python -m chrome_troubleshooter.cli
-# AUDIT COMPLIANCE: Entry point matches specification exactly
+# This allows the module to be run directly: python -m chrome_troubleshooter.cli_audit
 if __name__ == "__main__":
     app()

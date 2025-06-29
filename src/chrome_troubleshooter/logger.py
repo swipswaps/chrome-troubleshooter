@@ -4,16 +4,31 @@
 Advanced logging with JSON Lines, SQLite, and real-time terminal output
 """
 
-import json
 import sqlite3
 import sys
 import threading
-from datetime import datetime
+import shutil
+import gzip
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, Optional, TextIO
 from contextlib import contextmanager
 import fcntl
 import os
+
+# Optimized JSON handling with orjson fallback (5-10x performance improvement)
+try:
+    import orjson as _json
+    def dumps(obj: Any) -> str:
+        """Fast JSON serialization with orjson"""
+        return _json.dumps(obj).decode('utf-8')
+    JSON_BACKEND = "orjson"
+except ImportError:
+    import json as _json
+    def dumps(obj: Any) -> str:
+        """Standard JSON serialization fallback"""
+        return _json.dumps(obj, ensure_ascii=False)
+    JSON_BACKEND = "json"
 
 # Optional color support
 try:
@@ -61,6 +76,9 @@ class StructuredLogger:
         # Initialize storage
         self._init_sqlite()
         self._init_json()
+
+        # Auto-rotate old sessions (ChatGPT suggestion U4)
+        self._rotate_old_sessions()
 
         # Session metadata
         self.session_start = datetime.now()
@@ -120,6 +138,53 @@ class StructuredLogger:
             print(f"Warning: JSON file initialization failed: {e}", file=sys.stderr)
             self.enable_json = False
 
+    def _rotate_old_sessions(self, max_age_days: int = 7, max_size_mb: int = 200) -> None:
+        """Auto-rotate old sessions to prevent SSD bloat (ChatGPT suggestion U4)"""
+        try:
+            cache_dir = self.session_dir.parent
+            if not cache_dir.exists():
+                return
+
+            cutoff_date = datetime.now() - timedelta(days=max_age_days)
+            max_size_bytes = max_size_mb * 1024 * 1024
+
+            for session_dir in cache_dir.glob("session_*"):
+                if not session_dir.is_dir():
+                    continue
+
+                try:
+                    # Check age
+                    mtime = datetime.fromtimestamp(session_dir.stat().st_mtime)
+
+                    # Check size
+                    total_size = sum(f.stat().st_size for f in session_dir.rglob("*") if f.is_file())
+
+                    if mtime < cutoff_date or total_size > max_size_bytes:
+                        # Compress JSONL files before archiving
+                        jsonl_file = session_dir / "logs.jsonl"
+                        if jsonl_file.exists() and jsonl_file.stat().st_size > 1024:  # Only compress if > 1KB
+                            with open(jsonl_file, 'rb') as f_in:
+                                with gzip.open(f"{jsonl_file}.gz", 'wb') as f_out:
+                                    shutil.copyfileobj(f_in, f_out)
+                            jsonl_file.unlink()
+
+                        # Create compressed archive
+                        archive_name = f"{session_dir.name}.tar.gz"
+                        archive_path = cache_dir / archive_name
+                        shutil.make_archive(str(archive_path)[:-7], 'gztar', session_dir)
+
+                        # Remove original directory
+                        shutil.rmtree(session_dir, ignore_errors=True)
+
+                        reason = "age" if mtime < cutoff_date else "size"
+                        print(f"Rotated session {session_dir.name} ({reason}): {total_size:,} bytes -> {archive_path.name}")
+
+                except (OSError, ValueError) as e:
+                    print(f"Warning: Failed to rotate session {session_dir.name}: {e}", file=sys.stderr)
+
+        except Exception as e:
+            print(f"Warning: Session rotation failed: {e}", file=sys.stderr)
+
     def _get_timestamp(self) -> str:
         """Get ISO-8601 timestamp with timezone"""
         return datetime.now().astimezone().isoformat()
@@ -154,7 +219,7 @@ class StructuredLogger:
             return
 
         try:
-            metadata_json = json.dumps(metadata) if metadata else None
+            metadata_json = dumps(metadata) if metadata else None
             session_id = self.session_start.isoformat()
 
             self._db_connection.execute(
@@ -194,12 +259,11 @@ class StructuredLogger:
                 # Use file locking for concurrent access
                 fcntl.flock(f.fileno(), fcntl.LOCK_EX)
                 try:
-                    json.dump(log_entry, f, ensure_ascii=False)
-                    f.write("\n")
+                    f.write(dumps(log_entry) + "\n")
                 finally:
                     fcntl.flock(f.fileno(), fcntl.LOCK_UN)
 
-        except (OSError, json.JSONEncodeError) as e:
+        except (OSError, Exception) as e:
             print(f"JSON write error: {e}", file=sys.stderr)
 
     def _write_to_terminal(
@@ -333,6 +397,7 @@ class StructuredLogger:
             "log_count": self.log_count,
             "sqlite_enabled": self.enable_sqlite,
             "json_enabled": self.enable_json,
+            "json_backend": JSON_BACKEND,  # Show orjson vs json performance
             "colors_enabled": self.enable_colors,
             "files": {
                 "log_file": str(self.log_file),
