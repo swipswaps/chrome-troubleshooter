@@ -2,9 +2,9 @@
 
 **Advanced Chrome crash diagnosis and auto-remediation tool for Linux systems**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![CI](https://github.com/swipswaps/chrome-troubleshooter/workflows/CI/badge.svg)](https://github.com/swipswaps/chrome-troubleshooter/actions) [![Development Status](https://img.shields.io/badge/status-beta-orange.svg)](https://github.com/swipswaps/chrome-troubleshooter) [![Working CLI](https://img.shields.io/badge/CLI-working-green.svg)](https://github.com/swipswaps/chrome-troubleshooter)
+![CI](https://github.com/swipswaps/chrome-troubleshooter/actions/workflows/ci.yml/badge.svg)
+![PyPI](https://img.shields.io/pypi/v/chrome-troubleshooter.svg)
+![Status](https://img.shields.io/badge/stability-BETA-yellow)
 
 > **✅ WORKING BETA**: Core CLI functionality is implemented and tested. The tool successfully launches Chrome with troubleshooting and provides comprehensive diagnostics. Advanced features are being added incrementally. See [Project Status](#-project-status) for current implementation status.
 

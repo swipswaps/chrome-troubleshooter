@@ -132,6 +132,20 @@ def diag() -> None:
 
 @app.command()
 def version() -> None:
+
+@app.command("export-sqlite")
+def export_sqlite():
+    """
+    Print path to newest logs.sqlite.
+    
+    Following ChatGPT audit suggestion for SQLite export functionality.
+    Helps users locate diagnostic database for external analysis.
+    """
+    latest = max(get_cache_dir().glob("session_*"), default=None)
+    if latest:
+        typer.echo(latest / "logs.sqlite")
+    else:
+        typer.echo("No session found", err=True)
     """
     Print the installed package version.
 

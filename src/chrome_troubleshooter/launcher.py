@@ -17,6 +17,7 @@ Key design decisions from the audit:
 from __future__ import annotations
 
 import fcntl
+import atexit
 import subprocess
 import sys
 import time
@@ -32,11 +33,12 @@ from .utils import which_chrome
 
 # Lock file location in /tmp for system-wide single instance
 # Using /tmp ensures it's cleaned up on reboot
-# Hidden file (dot prefix) to avoid clutter
-_LOCK = Path("/tmp/.chrome_troubleshooter.lock")
-
-# Safe Chrome flags that don't modify security or GPU behavior
-# These flags enable logging without changing Chrome's core functionality
+# CRITICAL FIX: Global lock FD to prevent garbage collection
+# Following ChatGPT audit - "lock lives as long as FD lives"
+_LOCK.touch(exist_ok=True)
+LOCK_FD = _LOCK.open("w")                           # GLOBAL
+fcntl.flock(LOCK_FD, fcntl.LOCK_EX | fcntl.LOCK_NB)
+atexit.register(LOCK_FD.close)                      # deterministic cleanup
 # --enable-logging=stderr: Send Chrome logs to stderr for capture
 # --v=1: Verbose logging level 1 (basic debugging info)
 SAFE_FLAGS = ["--enable-logging=stderr", "--v=1"]

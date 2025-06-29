@@ -3,7 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
+version = "0.2.0b0"
 name = "chrome-troubleshooter"
+description = "Self-healing Chrome launcher with forensic logging"
 # SEMANTIC VERSION FIX: Correct version drift from 1.0.0 to beta
 # Following ChatGPT audit suggestion U-P1 for honest version communication
 #
@@ -88,12 +90,12 @@ requires-python = ">=3.8"
 # The typer[all] extra is not available in current versions
 # Installing individual dependencies for explicit control and compatibility
 dependencies = [
-    "typer>=0.12.0",        # Core CLI framework
-    "rich>=13.0.0",         # Colored output and progress bars
-    "click>=8.0.0",         # Underlying CLI framework (typer dependency)
+    "typer[all]>=0.12.0",   # Brings Rich & shellingham
 ]
 
 [project.optional-dependencies]
+fast = ["orjson>=3.9"]
+windows = ["portalocker>=2.8"]
 dev = [
     "black>=22.0.0",
     "pytest>=7.0.0",
