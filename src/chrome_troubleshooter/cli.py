@@ -9,7 +9,7 @@ CRITICAL IMPLEMENTATION NOTES:
 - This replaces the complex existing CLI with the audit-specified minimal version
 - The complex CLI is preserved as cli_complex.py for backward compatibility
 - Entry point MUST be chrome_troubleshooter.cli:app as specified in audit
-- All imports MUST use the audit-specified modules (constants_audit, etc.)
+- All imports MUST use the audit-specified modules (constants, etc.)
 - Function signatures MUST match the audit specification exactly
 
 Key design decisions from the audit:
@@ -35,10 +35,10 @@ import importlib.metadata
 
 import typer
 
-from .constants_audit import CACHE_DIR
-from .diagnostics_audit import collect_all
-from .launcher_audit import safe_launch
-from .logger_audit import LogWriter
+from .constants import CACHE_DIR
+from .diagnostics import collect_all
+from .launcher import safe_launch
+from .logger import StructuredLogger as LogWriter
 
 # Create Typer application with audit-specified configuration
 # add_completion=False: Disable shell completion for simplicity
@@ -71,7 +71,7 @@ def launch(
 
     AUDIT COMPLIANCE:
     ✓ Exact function signature from audit specification
-    ✓ Calls safe_launch from launcher_audit module
+    ✓ Calls safe_launch from launcher module
     ✓ Timeout parameter with correct default and help text
     ✓ Comprehensive docstring explaining functionality
     """
@@ -100,8 +100,8 @@ def diag() -> None:
 
     AUDIT COMPLIANCE:
     ✓ Exact function signature from audit (no parameters)
-    ✓ Uses CACHE_DIR from constants_audit module
-    ✓ Calls collect_all from diagnostics_audit module
+    ✓ Uses CACHE_DIR from constants module
+    ✓ Calls collect_all from diagnostics module
     ✓ Proper error handling for missing sessions
     ✓ User-friendly feedback with colored output
     """

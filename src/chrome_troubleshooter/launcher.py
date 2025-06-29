@@ -26,7 +26,7 @@ from rich.console import Console
 
 # SINGLE SOURCE OF TRUTH: Updated imports after module deduplication
 # Following ChatGPT audit suggestion U-C1 for module cleanup
-from .constants import CACHE_DIR, SESSION_FMT
+from .constants import CACHE_DIR, SESSION_FMT, ensure_directories
 from .logger import StructuredLogger as LogWriter
 from .utils import which_chrome
 
@@ -122,6 +122,10 @@ def safe_launch(timeout: int = 15) -> None:
             "[bold red]Chrome executable not found. Set $CHROME_PATH[/bold red]"
         )
         sys.exit(2)
+
+    # Ensure base directories exist (moved from import-time to runtime)
+    # CRITICAL FIX: Prevents import hangs from filesystem operations
+    ensure_directories()
 
     # Create session directory with ISO timestamp
     # This provides unique directory for each launch attempt

@@ -84,8 +84,13 @@ requires-python = ">=3.8"
 # MEMORY RETENTION AID:
 # "One source of truth" principle applies to dependencies too
 # Let typer manage rich version compatibility, we just use it
+# DEPENDENCY FIX: Typer dependency correction after installation testing
+# The typer[all] extra is not available in current versions
+# Installing individual dependencies for explicit control and compatibility
 dependencies = [
-    "typer[all]>=0.12.0",  # Includes rich, click, shellingham, and colorama
+    "typer>=0.12.0",        # Core CLI framework
+    "rich>=13.0.0",         # Colored output and progress bars
+    "click>=8.0.0",         # Underlying CLI framework (typer dependency)
 ]
 
 [project.optional-dependencies]
@@ -115,12 +120,13 @@ Issues = "https://github.com/swipswaps/chrome-troubleshooter/issues"
 Documentation = "https://github.com/swipswaps/chrome-troubleshooter#readme"
 
 [project.scripts]
-# CRITICAL FIX: Remove broken entry points that reference non-existent functions
-# This prevents ImportError crashes that destroy user first impressions
-# Following ChatGPT audit suggestion U-P1 for entry point cleanup
-chrome-troubleshooter = "chrome_troubleshooter.cli:main"
-# Keep only one stable entry point to reduce cognitive load
-# Progressive disclosure principle: fewer options = less confusion for new users
+# RESEARCH-BASED FIX: Correct entry point pattern for Typer applications
+# Based on official setuptools documentation and Typer GitHub issues #34, #52
+# Pattern: "module:function" where function calls the Typer app
+# Reference: https://setuptools.pypa.io/en/latest/userguide/entry_point.html
+chrome-troubleshooter = "chrome_troubleshooter.cli:app"
+# Using app() directly as recommended by Typer maintainers
+# This follows the standard pattern for Typer console script entry points
 
 [tool.setuptools.packages.find]
 where = ["src"]
