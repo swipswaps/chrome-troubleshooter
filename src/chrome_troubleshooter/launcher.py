@@ -16,12 +16,11 @@ Key design decisions from the audit:
 
 from __future__ import annotations
 
-import fcntl
 import atexit
+import fcntl
 import subprocess
 import sys
 import time
-from pathlib import Path
 
 from rich.console import Console
 

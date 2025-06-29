@@ -4,11 +4,11 @@
 Centralized configuration management with environment variable support
 """
 
-import os
 import json
-from pathlib import Path
-from typing import Dict, List, Any, Optional
+import os
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, List, Optional
 
 
 @dataclass
@@ -108,9 +108,9 @@ class Config:
 
         if config_path.exists():
             try:
-                with open(config_path, "r") as f:
+                with open(config_path) as f:
                     config_data = json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 print(f"Warning: Could not load config from {config_path}: {e}")
 
         # Environment variables override file settings
@@ -138,7 +138,7 @@ class Config:
             config_path.parent.mkdir(parents=True, exist_ok=True)
             with open(config_path, "w") as f:
                 json.dump(config_data, f, indent=2)
-        except IOError as e:
+        except OSError as e:
             print(f"Warning: Could not save config to {config_path}: {e}")
 
     def get_chrome_executable(self) -> Optional[str]:

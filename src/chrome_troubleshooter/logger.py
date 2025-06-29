@@ -4,17 +4,16 @@
 Advanced logging with JSON Lines, SQLite, and real-time terminal output
 """
 
+import fcntl
+import gzip
+import shutil
 import sqlite3
 import sys
 import threading
-import shutil
-import gzip
+from contextlib import contextmanager, suppress
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Any, Optional, TextIO
-from contextlib import contextmanager
-import fcntl
-import os
+from typing import Any, Dict, Optional
 
 # Optimized JSON handling with orjson fallback (5-10x performance improvement)
 try:
@@ -103,7 +102,7 @@ class StructuredLogger:
                 PRAGMA synchronous=NORMAL;
                 PRAGMA cache_size=10000;
                 PRAGMA temp_store=memory;
-                
+
                 CREATE TABLE IF NOT EXISTS logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     ts TEXT NOT NULL,
@@ -113,7 +112,7 @@ class StructuredLogger:
                     session_id TEXT NOT NULL,
                     metadata TEXT
                 );
-                
+
                 CREATE INDEX IF NOT EXISTS idx_logs_ts ON logs(ts);
                 CREATE INDEX IF NOT EXISTS idx_logs_source ON logs(source);
                 CREATE INDEX IF NOT EXISTS idx_logs_level ON logs(level);
@@ -388,10 +387,8 @@ class StructuredLogger:
         """Close all resources"""
         with self._lock:
             if self._db_connection:
-                try:
+                with suppress(sqlite3.Error):
                     self._db_connection.close()
-                except sqlite3.Error:
-                    pass
                 self._db_connection = None
 
             self.info("logger", f"Session ended: {datetime.now().isoformat()}")

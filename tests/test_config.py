@@ -4,9 +4,9 @@ Tests for chrome_troubleshooter.config module
 """
 
 import os
-import json
 import tempfile
 from pathlib import Path
+
 import pytest
 
 from chrome_troubleshooter.config import Config, load_config, save_config

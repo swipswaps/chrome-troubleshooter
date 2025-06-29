@@ -9,6 +9,7 @@ import tempfile
 import threading
 import time
 from pathlib import Path
+
 import pytest
 
 from chrome_troubleshooter.logger import StructuredLogger
@@ -81,7 +82,7 @@ class TestStructuredLogger:
                 logger.error("test", "Error message")
 
             # Verify JSON Lines file
-            with open(logger.json_file, "r") as f:
+            with open(logger.json_file) as f:
                 lines = f.readlines()
 
             # Should have at least session start + our 2 messages
@@ -118,7 +119,7 @@ class TestStructuredLogger:
                 logger.error("test", "Error message")
 
             # Verify text log file
-            with open(logger.log_file, "r") as f:
+            with open(logger.log_file) as f:
                 content = f.read()
 
             assert "Test message" in content
@@ -272,7 +273,7 @@ class TestStructuredLogger:
                 logger.info("test", "Normal message after error")
 
             # Verify normal operation continued
-            with open(logger.log_file, "r") as f:
+            with open(logger.log_file) as f:
                 content = f.read()
 
             assert "Normal message after error" in content

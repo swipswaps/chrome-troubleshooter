@@ -15,6 +15,7 @@ Key design decisions from the audit:
 
 from __future__ import annotations
 
+import contextlib
 import shutil
 import subprocess
 
@@ -179,10 +180,8 @@ def _check_system_access() -> dict:
     }
 
     # Get user groups for permission analysis
-    try:
+    with contextlib.suppress(Exception):
         access_info['user_groups'] = [grp.getgrgid(gid).gr_name for gid in os.getgroups()]
-    except Exception:
-        pass
 
     # Check if we can read /var/log
     try:

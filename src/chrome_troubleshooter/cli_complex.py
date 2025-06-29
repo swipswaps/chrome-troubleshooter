@@ -6,22 +6,19 @@ Professional CLI for Chrome crash diagnosis and auto-remediation
 
 import argparse
 import sys
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.table import Table
-from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.panel import Panel
-from rich import print as rprint
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from .config import Config, load_config, save_config
-from .logger import StructuredLogger
-from .launcher import ChromeLauncher
 from .diagnostics import DiagnosticsCollector
+from .launcher import ChromeLauncher
+from .logger import StructuredLogger
 
 # Initialize Rich console
 console = Console()
@@ -570,7 +567,6 @@ def create_parser():
 
 def main() -> int:
     """Main CLI entry point"""
-    import argparse
 
     parser = create_parser()
     args = parser.parse_args()
