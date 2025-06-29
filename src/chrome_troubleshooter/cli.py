@@ -35,7 +35,7 @@ import importlib.metadata
 
 import typer
 
-from .constants import CACHE_DIR
+from .constants import get_cache_dir, ensure_cache_dir
 from .diagnostics import collect_all
 from .launcher import safe_launch
 from .logger import StructuredLogger as LogWriter
@@ -108,7 +108,7 @@ def diag() -> None:
     # Find the most recent session directory
     # glob returns all matching directories, max() finds the newest
     # default=None handles the case where no sessions exist
-    latest_session = max(CACHE_DIR.glob("session_*"), default=None)
+    latest_session = max(get_cache_dir().glob("session_*"), default=None)
 
     if latest_session:
         # Session found - collect diagnostics and append to logs

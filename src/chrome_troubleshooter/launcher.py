@@ -26,7 +26,7 @@ from rich.console import Console
 
 # SINGLE SOURCE OF TRUTH: Updated imports after module deduplication
 # Following ChatGPT audit suggestion U-C1 for module cleanup
-from .constants import CACHE_DIR, SESSION_FMT, ensure_directories
+from .constants import SESSION_FMT, get_cache_dir
 from .logger import StructuredLogger as LogWriter
 from .utils import which_chrome
 
@@ -123,13 +123,14 @@ def safe_launch(timeout: int = 15) -> None:
         )
         sys.exit(2)
 
-    # Ensure base directories exist (moved from import-time to runtime)
+    # Get cache directory and ensure it exists (moved from import-time to runtime)
     # CRITICAL FIX: Prevents import hangs from filesystem operations
-    ensure_directories()
+    cache_dir = get_cache_dir()
+    cache_dir.mkdir(parents=True, exist_ok=True)
 
     # Create session directory with ISO timestamp
     # This provides unique directory for each launch attempt
-    session_dir = CACHE_DIR / time.strftime(SESSION_FMT)
+    session_dir = cache_dir / time.strftime(SESSION_FMT)
     session_dir.mkdir(parents=True, exist_ok=True)
 
     # Initialize session logger for forensic analysis

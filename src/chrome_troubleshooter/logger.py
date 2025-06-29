@@ -124,6 +124,34 @@ class StructuredLogger:
 
         except sqlite3.Error as e:
             print(f"Warning: SQLite initialization failed: {e}", file=sys.stderr)
+            # Try to recover by recreating the database
+            if "no such column" in str(e).lower():
+                self._recover_database()
+            else:
+                self.enable_sqlite = False
+
+    def _recover_database(self) -> None:
+        """
+        Recover from database schema errors by recreating the database.
+
+        CRITICAL FIX: Handles "no such column" errors from old database files.
+        Following ChatGPT audit recommendation for graceful error recovery.
+        """
+        try:
+            if self._db_connection:
+                self._db_connection.close()
+
+            # Backup old database if it exists
+            if self.db_file.exists():
+                backup_file = self.db_file.with_suffix('.db.backup')
+                self.db_file.rename(backup_file)
+                print(f"Warning: Backed up corrupted database to {backup_file}", file=sys.stderr)
+
+            # Reinitialize with fresh database
+            self._init_sqlite()
+
+        except Exception as e:
+            print(f"Warning: Database recovery failed: {e}", file=sys.stderr)
             self.enable_sqlite = False
 
     def _init_json(self) -> None:
@@ -339,6 +367,22 @@ class StructuredLogger:
     ) -> None:
         """Log success message"""
         self.log("SUCCESS", source, content, metadata)
+
+    def add(
+        self, source: str, content: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Add log entry (alias for info method).
+
+        CRITICAL FIX: This method was missing, causing AttributeError in diagnostics.
+        Following ChatGPT audit recommendation to provide backward compatibility.
+
+        Args:
+            source: Source component/module name
+            content: Log message content
+            metadata: Optional structured metadata
+        """
+        self.info(source, content, metadata)
 
     def close(self) -> None:
         """Close all resources"""

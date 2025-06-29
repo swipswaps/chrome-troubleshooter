@@ -9,24 +9,26 @@ __version__ = "0.2.0b0"
 __author__ = "swipswaps"
 __description__ = "Advanced Chrome crash diagnosis and auto-remediation tool"
 
-# AUDIT-COMPLIANT IMPORTS: Updated to match consolidated module interface
-# Following ChatGPT audit suggestion U-C1 for Single Source of Truth
-# The audit version uses functions rather than classes for simplicity
+# CIRCULAR DEPENDENCY FIX: NO imports to prevent import loops
+# Following ChatGPT audit recommendation for zero-dependency __init__.py
+#
+# CRITICAL FIX: Removed ALL imports that cause circular dependencies
+# Users should import specific modules directly:
+# - from chrome_troubleshooter.constants import get_cache_dir
+# - from chrome_troubleshooter.launcher import safe_launch
+# - from chrome_troubleshooter.logger import StructuredLogger
 #
 # IMPORT STRATEGY EXPLANATION:
-# - Import only the essential public interface
-# - Avoid importing everything to prevent circular dependencies
-# - Match the actual implementation (functions vs classes)
-# - Keep __all__ minimal to reduce API surface area
-from .launcher import safe_launch
-from .diagnostics import collect_all
-from .logger import StructuredLogger
-from .constants import CACHE_DIR
+# - Import NOTHING to prevent any circular dependencies
+# - Keep __all__ empty to force explicit imports
+# - This ensures fast, reliable imports for IDEs and tools
+# No imports here - users import modules directly
 
 __all__ = [
-    "safe_launch",      # Main launcher function
-    "collect_all",      # Diagnostics collection function
-    "StructuredLogger", # Logger class (enhanced with orjson)
-    "CACHE_DIR",        # Cache directory constant
     "__version__",      # Version string
+    # Note: All other imports removed to prevent circular dependencies
+    # Users should import modules directly:
+    # from chrome_troubleshooter.constants import get_cache_dir
+    # from chrome_troubleshooter.launcher import safe_launch
+    # from chrome_troubleshooter.logger import StructuredLogger
 ]
