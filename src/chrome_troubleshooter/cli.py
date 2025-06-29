@@ -28,7 +28,7 @@ def launch(
 ) -> None:
     """Start Chrome with safe flags and create a forensic session."""
     config = Config()
-    logger = StructuredLogger(config.session_dir)
+    StructuredLogger(config.session_dir)
     # Use safe_launch function directly
 
     try:
@@ -36,7 +36,7 @@ def launch(
         typer.echo(f"Session created: {config.session_dir}")
     except Exception as e:
         typer.echo(f"Launch failed: {e}", err=True)
-        raise typer.Exit(1) from e
+        raise typer.Exit(1) from None
 
 
 @app.command()
@@ -46,7 +46,7 @@ def diag() -> None:
         latest = max(get_cache_dir().glob("session_*"), default=None)
         if not latest:
             typer.echo("No session found. Run 'chrome-troubleshooter launch' first.", err=True)
-            raise typer.Exit(1) from e
+            raise typer.Exit(1) from None
 
         logger = StructuredLogger(latest)
         collect_all(logger)
@@ -54,7 +54,7 @@ def diag() -> None:
 
     except Exception as e:
         typer.echo(f"Diagnostics failed: {e}", err=True)
-        raise typer.Exit(1) from e
+        raise typer.Exit(1) from None
 
 
 @app.command()
@@ -65,7 +65,7 @@ def version() -> None:
         typer.echo(package_version)
     except importlib.metadata.PackageNotFoundError:
         typer.echo("Package version not found. Try reinstalling with: pip install -e .", err=True)
-        raise typer.Exit(1) from e
+        raise typer.Exit(1) from None
 
 
 @app.command("export-sqlite")

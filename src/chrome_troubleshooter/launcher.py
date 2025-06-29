@@ -15,13 +15,12 @@ Key design decisions from the audit:
 6. Proper cleanup of lock file descriptor
 """
 
-from pathlib import Path
-
 import atexit
 import fcntl
 import subprocess
 import sys
 import time
+from pathlib import Path
 
 from rich.console import Console
 
